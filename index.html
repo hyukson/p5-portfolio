@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Visual Portfolio · p5.js</title>
+  <meta name="description" content="p5.js로 제작한 정적·동적 작품 모음 (과제 1~4)" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0a14;
+      --bg-2: #11112a;
+      --card: rgba(255, 255, 255, 0.04);
+      --card-border: rgba(255, 255, 255, 0.10);
+      --text: #f3f4ff;
+      --muted: #9aa0c0;
+      --accent: #7c6cff;
+      --accent-2: #19d3c5;
+      --static: #ffb347;
+      --dynamic: #19d3c5;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: "Space Grotesk", "Gowun Dodum", system-ui, sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* animated aurora background */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: -20%;
+      z-index: -2;
+      background:
+        radial-gradient(40% 40% at 20% 20%, rgba(124, 108, 255, 0.35), transparent 60%),
+        radial-gradient(35% 35% at 80% 15%, rgba(25, 211, 197, 0.28), transparent 60%),
+        radial-gradient(45% 45% at 70% 85%, rgba(255, 105, 180, 0.20), transparent 60%),
+        var(--bg);
+      filter: blur(20px);
+      animation: drift 22s ease-in-out infinite alternate;
+    }
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      background-image:
+        linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+      background-size: 44px 44px;
+      mask-image: radial-gradient(circle at 50% 30%, black, transparent 80%);
+    }
+    @keyframes drift {
+      0%   { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(-4%, 3%) scale(1.08); }
+    }
+
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 0 24px 90px; }
+
+    /* ---------- Hero ---------- */
+    header.hero {
+      text-align: center;
+      padding: 84px 16px 56px;
+    }
+    .eyebrow {
+      display: inline-block;
+      font-size: 0.78rem;
+      letter-spacing: 0.32em;
+      text-transform: uppercase;
+      color: var(--accent-2);
+      border: 1px solid var(--card-border);
+      padding: 7px 16px;
+      border-radius: 999px;
+      background: var(--card);
+      backdrop-filter: blur(8px);
+      margin-bottom: 26px;
+    }
+    .hero h1 {
+      font-size: clamp(2.4rem, 6vw, 4.6rem);
+      font-weight: 700;
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+      background: linear-gradient(120deg, #fff 10%, var(--accent) 55%, var(--accent-2) 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .hero p.sub {
+      margin: 22px auto 0;
+      max-width: 620px;
+      color: var(--muted);
+      font-family: "Gowun Dodum", sans-serif;
+      font-size: 1.05rem;
+      line-height: 1.7;
+    }
+    .legend {
+      display: flex;
+      gap: 22px;
+      justify-content: center;
+      margin-top: 30px;
+      flex-wrap: wrap;
+    }
+    .legend span { display: inline-flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--muted); }
+    .dot { width: 10px; height: 10px; border-radius: 50%; }
+    .dot.s { background: var(--static); box-shadow: 0 0 12px var(--static); }
+    .dot.d { background: var(--dynamic); box-shadow: 0 0 12px var(--dynamic); }
+
+    /* ---------- Grid 2x2 ---------- */
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 26px;
+    }
+
+    .card {
+      position: relative;
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      background: var(--card);
+      backdrop-filter: blur(10px);
+      overflow: hidden;
+      transition: transform 0.35s cubic-bezier(.2,.8,.2,1), box-shadow 0.35s, border-color 0.35s;
+    }
+    .card:hover {
+      transform: translateY(-6px);
+      border-color: rgba(255,255,255,0.22);
+      box-shadow: 0 24px 60px -24px rgba(124,108,255,0.55);
+    }
+
+    .frame {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 11;
+      background: #05050c;
+      border-bottom: 1px solid var(--card-border);
+      overflow: hidden;
+    }
+    .frame iframe {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      display: block;
+    }
+    /* hint overlay until hover */
+    .frame .hint {
+      position: absolute;
+      bottom: 10px;
+      right: 12px;
+      font-size: 0.72rem;
+      color: var(--text);
+      background: rgba(10,10,20,0.7);
+      border: 1px solid var(--card-border);
+      padding: 5px 10px;
+      border-radius: 999px;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s;
+      backdrop-filter: blur(4px);
+    }
+    .card:hover .frame .hint { opacity: 1; }
+
+    .meta { padding: 18px 20px 20px; }
+    .meta .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .badge {
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 4px 11px;
+      border-radius: 999px;
+      font-weight: 600;
+    }
+    .badge.static { color: var(--static); background: rgba(255,179,71,0.12); border: 1px solid rgba(255,179,71,0.3); }
+    .badge.dynamic { color: var(--dynamic); background: rgba(25,211,197,0.12); border: 1px solid rgba(25,211,197,0.3); }
+    .meta h3 { margin-top: 12px; font-size: 1.18rem; font-weight: 500; }
+    .meta p {
+      margin-top: 7px;
+      color: var(--muted);
+      font-family: "Gowun Dodum", sans-serif;
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+    .open {
+      margin-top: 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.82rem;
+      color: var(--accent-2);
+      text-decoration: none;
+      transition: gap 0.25s, color 0.25s;
+    }
+    .open:hover { gap: 11px; color: #fff; }
+    .num {
+      position: absolute;
+      top: 14px;
+      left: 16px;
+      z-index: 2;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      color: var(--text);
+      background: rgba(10,10,20,0.55);
+      border: 1px solid var(--card-border);
+      padding: 4px 10px;
+      border-radius: 999px;
+      backdrop-filter: blur(4px);
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 70px;
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-family: "Gowun Dodum", sans-serif;
+    }
+    footer a { color: var(--accent-2); text-decoration: none; }
+
+    @media (max-width: 720px) {
+      .grid { grid-template-columns: 1fr; }
+      header.hero { padding: 60px 12px 40px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="hero">
+      <span class="eyebrow">Creative Coding · p5.js</span>
+      <h1>Visual Portfolio</h1>
+      <p class="sub">
+        p5.js로 만든 네 가지 작품입니다. 정적인 드로잉에서 출발해
+        움직임과 상호작용이 있는 동적 작품으로 이어집니다.
+        각 작품은 아래에서 바로 실행됩니다 — 마우스를 올리고 클릭해 보세요.
+      </p>
+      <div class="legend">
+        <span><i class="dot s"></i> 정적 (Static)</span>
+        <span><i class="dot d"></i> 동적 (Dynamic)</span>
+      </div>
+    </header>
+
+    <main class="grid">
+      <!-- Row 1, Col 1 : 과제 1 (정적) -->
+      <article class="card">
+        <span class="num">01</span>
+        <div class="frame">
+          <iframe src="https://editor.p5js.org/hyuksoo128/full/SSY4IRLkO" title="과제 1 - 정적 작품" loading="lazy" allowfullscreen></iframe>
+          <span class="hint">클릭 / 상호작용 가능</span>
+        </div>
+        <div class="meta">
+          <div class="row">
+            <h3>과제 1</h3>
+            <span class="badge static">Static</span>
+          </div>
+          <p>도형과 색으로 화면을 구성한 첫 번째 정적 드로잉.</p>
+          <a class="open" href="https://editor.p5js.org/hyuksoo128/full/SSY4IRLkO" target="_blank" rel="noopener">전체 화면으로 열기 →</a>
+        </div>
+      </article>
+
+      <!-- Row 1, Col 2 : 과제 4 (동적) -->
+      <article class="card">
+        <span class="num">04</span>
+        <div class="frame">
+          <iframe src="https://editor.p5js.org/hyuksoo128/full/-bHkdHX7a" title="과제 4 - 동적 작품" loading="lazy" allowfullscreen></iframe>
+          <span class="hint">클릭 / 상호작용 가능</span>
+        </div>
+        <div class="meta">
+          <div class="row">
+            <h3>과제 4</h3>
+            <span class="badge dynamic">Dynamic</span>
+          </div>
+          <p>애니메이션과 상호작용을 더한 동적 작품.</p>
+          <a class="open" href="https://editor.p5js.org/hyuksoo128/full/-bHkdHX7a" target="_blank" rel="noopener">전체 화면으로 열기 →</a>
+        </div>
+      </article>
+
+      <!-- Row 2, Col 1 : 과제 2 (정적) -->
+      <article class="card">
+        <span class="num">02</span>
+        <div class="frame">
+          <iframe src="https://editor.p5js.org/hyuksoo128/full/F8_9j4CRr" title="과제 2 - 정적 작품" loading="lazy" allowfullscreen></iframe>
+          <span class="hint">클릭 / 상호작용 가능</span>
+        </div>
+        <div class="meta">
+          <div class="row">
+            <h3>과제 2</h3>
+            <span class="badge static">Static</span>
+          </div>
+          <p>구성과 배치를 발전시킨 두 번째 정적 작품.</p>
+          <a class="open" href="https://editor.p5js.org/hyuksoo128/full/F8_9j4CRr" target="_blank" rel="noopener">전체 화면으로 열기 →</a>
+        </div>
+      </article>
+
+      <!-- Row 2, Col 2 : 과제 3 (동적) -->
+      <article class="card">
+        <span class="num">03</span>
+        <div class="frame">
+          <iframe src="https://editor.p5js.org/hyuksoo128/full/PU_Ki2wma" title="과제 3 - 동적 작품" loading="lazy" allowfullscreen></iframe>
+          <span class="hint">클릭 / 상호작용 가능</span>
+        </div>
+        <div class="meta">
+          <div class="row">
+            <h3>과제 3</h3>
+            <span class="badge dynamic">Dynamic</span>
+          </div>
+          <p>움직임과 반응을 본격적으로 다룬 동적 작품.</p>
+          <a class="open" href="https://editor.p5js.org/hyuksoo128/full/PU_Ki2wma" target="_blank" rel="noopener">전체 화면으로 열기 →</a>
+        </div>
+      </article>
+    </main>
+
+    <footer>
+      Made with <a href="https://p5js.org" target="_blank" rel="noopener">p5.js</a> ·
+      © 2026 hyuksoo128
+    </footer>
+  </div>
+</body>
+</html>
