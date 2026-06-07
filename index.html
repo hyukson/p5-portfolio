@@ -215,9 +215,15 @@
     }
     footer a { color: var(--accent-2); text-decoration: none; }
 
+    /* 화면이 좁아져도 2행 2열 구조는 항상 유지 (간격/여백만 축소) */
     @media (max-width: 720px) {
-      .grid { grid-template-columns: 1fr; }
-      header.hero { padding: 60px 12px 40px; }
+      .wrap { padding: 0 14px 60px; }
+      .grid { gap: 14px; }
+      header.hero { padding: 56px 10px 36px; }
+      .meta { padding: 12px 14px 16px; }
+      .meta h3 { font-size: 1rem; }
+      .meta p { font-size: 0.82rem; }
+      .badge { font-size: 0.62rem; padding: 3px 8px; }
     }
   </style>
 </head>
